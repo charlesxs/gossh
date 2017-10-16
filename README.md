@@ -5,11 +5,11 @@
 
 **安装**
 
-	1. git clone https://github.com/charlesxs/gossh.git
+	1. yum -y install go && git clone https://github.com/charlesxs/gossh.git $GOPATH/src/gossh
 
 	2. go get golang.org/x/crypto/ssh
 
-	3. cd gossh/ && go build
+	3. cd $GOPATH/src/gossh/ && go build
 
 
 **使用**

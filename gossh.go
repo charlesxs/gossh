@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"config"
-	"sshclient"
+	"gossh/config"
+	"gossh/sshclient"
 )
 
 const example = `
