@@ -1,4 +1,4 @@
-##gossh
+##gossh##
 
 一个简易的类似于Ansible ssh远程批量执行工具
 
