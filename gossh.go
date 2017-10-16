@@ -57,4 +57,5 @@ func main() {
 			count = 0
 		}
 	}
+	wg.Wait()
 }
