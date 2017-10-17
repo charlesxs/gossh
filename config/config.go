@@ -31,7 +31,7 @@ func LoadConfig(filename string) (*Config, error) {
 	r := bufio.NewReader(f)
 	for {
 		s, err := r.ReadString('\n')
-		if err == io.EOF {
+		if err == io.EOF && len(s) <= 0 {
 			break
 		}
 		s = strings.Trim(s, "\n")
