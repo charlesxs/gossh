@@ -6,30 +6,49 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"net"
 	"time"
+	"crypto/x509"
+	"encoding/pem"
+	"errors"
+	"net"
 )
 
 type SSH struct {
 	Host, User, Password string
+	IdentityFile, IdentityFilePassword string
 	Port                 int
 }
 
-func NewSSH(host, user, password string, port int) *SSH {
+func NewSSH(host, user, password, identityFile, idfilepass string, port int) *SSH {
 	return &SSH{
 		Host:     host,
 		User:     user,
 		Password: password,
 		Port:     port,
+		IdentityFile: identityFile,
+		IdentityFilePassword: idfilepass,
 	}
 }
 
 func (s *SSH) Connect() (*ssh.Session, error) {
+	auths := []ssh.AuthMethod{
+		ssh.Password(s.Password),
+	}
+	key, err := ioutil.ReadFile(s.IdentityFile)
+	if err == nil {
+		key, err := DecryptKey(key, []byte(s.IdentityFilePassword))
+		if err != nil {
+			goto M
+		}
+		signer, err := ssh.ParsePrivateKey(key)
+		if err == nil {
+			auths = append(auths, ssh.PublicKeys(signer))
+		}
+	}
+	M:
 	config := &ssh.ClientConfig{
 		User: s.User,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(s.Password),
-		},
+		Auth: auths,
 		Timeout: time.Second * 10,
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
@@ -66,7 +85,7 @@ func (s *SSH) PrintRun(cmd string) {
 	// initial session
 	session, err := s.Connect()
 	if err != nil {
-		log.Println("Connect Failed: ", s.Host, err)
+		log.Printf("%s execute failed ~> \n\033[31m%s\033[0m\n\n", s.Host, err)
 		return
 	}
 	defer session.Close()
@@ -84,4 +103,21 @@ func (s *SSH) PrintRun(cmd string) {
 	}
 	res, _ = ioutil.ReadAll(stdout)
 	log.Printf("%s execute ok ~> \n\033[32m%s\033[0m", s.Host, string(res))
+}
+
+
+func DecryptKey(key, password []byte) ([]byte, error) {
+	block, rest := pem.Decode(key)
+	if len(rest) > 0 {
+		return nil, errors.New(fmt.Sprintf("Decrypt key error: %s", string(rest)))
+	}
+
+	if x509.IsEncryptedPEMBlock(block) {
+		der, err := x509.DecryptPEMBlock(block, password)
+		if err != nil {
+			return nil, err
+		}
+		return pem.EncodeToMemory(&pem.Block{Type: block.Type, Bytes: der}), nil
+	}
+	return key, nil
 }

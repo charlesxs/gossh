@@ -12,6 +12,7 @@ import (
 type Config struct {
 	Hosts          []string
 	User, Password string
+	IdentityFile, IdentityPass string
 	Port, Parallel int
 }
 
@@ -23,7 +24,7 @@ func LoadConfig(filename string) (*Config, error) {
 	defer f.Close()
 
 	var (
-		profile_start, hosts_start bool
+		profile, host bool
 		hosts                      = make([]string, 0, 10)
 		conf                       Config
 	)
@@ -34,39 +35,55 @@ func LoadConfig(filename string) (*Config, error) {
 		if err == io.EOF && len(s) <= 0 {
 			break
 		}
-		s = strings.Trim(s, "\n")
-
 		switch {
 		case strings.Contains(s, "profile"):
-			profile_start = true
+			profile = true
 			continue
 
 		case strings.Contains(s, "hosts"):
-			profile_start, hosts_start = false, true
+			profile, host = false, true
 			continue
 
-		case strings.Trim(s, " ") == "\n":
+		case strings.Trim(s, " ") == "\n" || strings.HasPrefix(s, "#"):
 			continue
 		}
 
-		if profile_start {
+		if profile {
+			var value string
 			res := strings.Split(s, "=")
-			switch strings.Trim(res[0], " ") {
+
+			if len(res) == 2 {
+				value = strings.TrimSpace(res[1])
+			}
+
+			switch strings.TrimSpace(res[0]) {
 			case "username":
-				conf.User = strings.Trim(res[1], " ")
+				conf.User = strings.Trim(value, `"`)
 
 			case "password":
-				conf.Password = strings.Trim(res[1], " ")
+				conf.Password = strings.Trim(value,`"`)
 
 			case "port":
-				conf.Port, _ = strconv.Atoi(strings.Trim(res[1], " "))
+				conf.Port, _ = strconv.Atoi(value)
 
 			case "parallel":
-				conf.Parallel, _ = strconv.Atoi(strings.Trim(res[1], " "))
+				conf.Parallel, _ = strconv.Atoi(value)
+
+			case "identityFile":
+				conf.IdentityFile = strings.Trim(value, `"`)
+
+			case "identityPass":
+				conf.IdentityPass = strings.Trim(value, `"`)
 			}
 		}
 
-		if hosts_start {
+		if host {
+			s := strings.TrimSpace(s)
+			if isDomainString(s) {
+				hosts = append(hosts, s)
+				continue
+			}
+
 			if strings.Contains(s, "-") {
 				ips := strings.Split(s, "-")
 				ip := strings.Split(ips[0], ".")
@@ -94,4 +111,13 @@ func LoadConfig(filename string) (*Config, error) {
 	conf.Hosts = hosts
 
 	return &conf, nil
+}
+
+func isDomainString(s string) bool {
+	strList := strings.Split(s, ".")
+	_, err := strconv.Atoi(strList[0])
+	if err != nil {
+		return true
+	}
+	return false
 }

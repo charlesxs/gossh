@@ -14,6 +14,8 @@ Example <hosts.conf>:
 [profile]
 username = user
 password = pass
+identityFile = ~/.ssh/id_rsa
+identityPass = "Null or private key's password"
 port = 22
 parallel = 10
 
@@ -45,8 +47,12 @@ func main() {
 		count++
 		wg.Add(1)
 		go func(host string) {
-			ssh := sshclient.NewSSH(host, conf.User,
-				conf.Password, conf.Port)
+			ssh := sshclient.NewSSH(
+				host, conf.User,
+				conf.Password,
+				conf.IdentityFile,
+				conf.IdentityPass,
+				conf.Port)
 			ssh.PrintRun(cmd)
 			wg.Done()
 
