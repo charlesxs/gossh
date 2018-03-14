@@ -66,7 +66,7 @@ func (s *SSH) PrintRun(cmd string) {
 	// initial session
 	session, err := s.Connect()
 	if err != nil {
-		log.Println(err)
+		log.Println("Connect Failed: ", s.Host, err)
 		return
 	}
 	defer session.Close()
