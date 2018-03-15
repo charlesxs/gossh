@@ -41,8 +41,8 @@ type Counter struct {
 func (c *Counter) Incre(host string)  {
 	c.Lock()
 	defer c.Unlock()
+	c.Hosts[c.Data] = host
 	c.Data++
-	c.Hosts[c.Data-1] = host
 }
 
 func (c *Counter) Decre()  {
@@ -58,11 +58,6 @@ func main() {
 		return
 	}
 
-	var (
-		wg    sync.WaitGroup
-		parallel int
-	)
-
 	cmd := strings.Join(os.Args[1:], " ")
 	conf, err := config.LoadConfig("hosts.conf")
 	if err != nil {
@@ -70,8 +65,12 @@ func main() {
 		return
 	}
 
-	success := &Counter{Hosts: make([]string, len(conf.Hosts))}
-	fail := &Counter{Hosts: make([]string, len(conf.Hosts))}
+	var (
+		wg    sync.WaitGroup
+		parallel int
+		hostsNum = len(conf.Hosts)
+		fail = &Counter{Hosts: make([]string, hostsNum)}
+	)
 
 	for _, host := range conf.Hosts {
 		parallel++
@@ -84,9 +83,7 @@ func main() {
 				conf.IdentityPass,
 				conf.Port,
 				)
-			if ret := ssh.PrintRun(cmd); ret == 0 {
-				success.Incre(host)
-			} else {
+			if ssh.PrintRun(cmd) != 0 {
 				fail.Incre(host)
 			}
 			wg.Done()
@@ -99,8 +96,7 @@ func main() {
 	}
 	wg.Wait()
 
-	fmt.Printf(summary, success.Data+fail.Data, success.Data, fail.Data)
-
+	fmt.Printf(summary, hostsNum, hostsNum - fail.Data, fail.Data)
 	for _, v := range fail.Hosts{
 		if v != "" {
 			fmt.Printf("     %s\n", v)
