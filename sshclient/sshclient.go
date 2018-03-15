@@ -79,14 +79,14 @@ func (s *SSH) Run(cmd string) (stdout, stderr io.Reader, err error) {
 	return stdout, stderr, err
 }
 
-func (s *SSH) PrintRun(cmd string) {
+func (s *SSH) PrintRun(cmd string) int {
 	var res []byte
 
 	// initial session
 	session, err := s.Connect()
 	if err != nil {
 		log.Printf("%s execute failed ~> \n\033[31m%s\033[0m\n\n", s.Host, err)
-		return
+		return 1
 	}
 	defer session.Close()
 
@@ -99,10 +99,11 @@ func (s *SSH) PrintRun(cmd string) {
 	if err != nil {
 		res, _ = ioutil.ReadAll(stderr)
 		log.Printf("%s execute failed ~> \n\033[31m%s\033[0m", s.Host, string(res))
-		return
+		return 1
 	}
 	res, _ = ioutil.ReadAll(stdout)
 	log.Printf("%s execute ok ~> \n\033[32m%s\033[0m", s.Host, string(res))
+	return 0
 }
 
 

@@ -24,7 +24,7 @@ func LoadConfig(filename string) (*Config, error) {
 	defer f.Close()
 
 	var (
-		profile, host bool
+		profile, host 			   bool
 		hosts                      = make([]string, 0, 10)
 		conf                       Config
 	)
@@ -35,16 +35,18 @@ func LoadConfig(filename string) (*Config, error) {
 		if err == io.EOF && len(s) <= 0 {
 			break
 		}
+		s = strings.TrimSpace(s)
+
 		switch {
-		case strings.Contains(s, "profile"):
+		case strings.Contains(s, "[profile]"):
 			profile = true
 			continue
 
-		case strings.Contains(s, "hosts"):
+		case strings.Contains(s, "[hosts]"):
 			profile, host = false, true
 			continue
 
-		case strings.Trim(s, " ") == "\n" || strings.HasPrefix(s, "#"):
+		case s == "" || strings.HasPrefix(s, "#"):
 			continue
 		}
 
@@ -78,7 +80,6 @@ func LoadConfig(filename string) (*Config, error) {
 		}
 
 		if host {
-			s := strings.TrimSpace(s)
 			if isDomainString(s) {
 				hosts = append(hosts, s)
 				continue
