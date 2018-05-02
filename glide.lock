@@ -1,0 +1,13 @@
+hash: 358bbd7f74a6879f0f4db5d928f3f51fa81425d196fc63566b0de8d35d57de09
+updated: 2018-05-02T19:11:18.105997+08:00
+imports:
+- name: golang.org/x/crypto
+  version: 613d6eafa307c6881a737a3c35c0e312e8d3a8c5
+  subpackages:
+  - curve25519
+  - ed25519
+  - ed25519/internal/edwards25519
+  - internal/chacha20
+  - poly1305
+  - ssh
+testImports: []
