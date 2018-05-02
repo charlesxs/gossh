@@ -5,11 +5,19 @@
 
 **安装**
 
-	1. yum -y install go && git clone https://github.com/charlesxs/gossh.git $GOPATH/src/gossh
+	1. 安装 go 和 gossh
 
-	2. go get golang.org/x/crypto/ssh
+	    yum -y install go && git clone https://github.com/charlesxs/gossh.git $GOPATH/src/gossh
 
-	3. cd $GOPATH/src/gossh/ && go build
+	2. 安装 glide, glide 默认安装在 $GOPATH/bin 目录下
+
+        curl https://glide.sh/get | sh
+
+        export PATH=$PATH:$GOPATH/bin
+
+	3. 编译 (若要安装执行 make install, 则默认安装到 $GOPATH/bin 目录下)
+
+	    cd $GOPATH/src/gossh/ && make
 
 
 **使用**
