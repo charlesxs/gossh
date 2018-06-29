@@ -7,7 +7,7 @@
 
 	1. 安装 go 和 gossh
 
-	    yum -y install go && git clone https://github.com/charlesxs/gossh.git $GOPATH/src/gossh
+	    yum -y install golang && git clone https://github.com/charlesxs/gossh.git $GOPATH/src/gossh
 
 	2. 安装 glide, glide 默认安装在 $GOPATH/bin 目录下
 
